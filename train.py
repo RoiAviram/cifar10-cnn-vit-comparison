@@ -62,15 +62,12 @@ def set_seed(seed: int = 42) -> None:
 
 def get_device(use_mps: bool = True) -> torch.device:
     """
-    Detect best available device: MPS (Apple GPU) > CPU.
-
-    Args:
-        use_mps: If False, force CPU even if MPS is available
-
-    Returns:
-        torch.device for model and data
+    Detect best available device: CUDA (Nvidia) > MPS (Apple) > CPU.
     """
-    if use_mps and torch.backends.mps.is_available():
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"Using device: CUDA (Nvidia GPU - Colab Mode)")
+    elif use_mps and torch.backends.mps.is_available():
         device = torch.device("mps")
         print(f"Using device: MPS (Apple Silicon GPU)")
     else:
@@ -78,6 +75,15 @@ def get_device(use_mps: bool = True) -> torch.device:
         print(f"Using device: CPU")
     return device
 
+def create_dataloaders(
+    train_ds, val_ds, test_ds,
+    img_size: int = 64,
+    batch_size: int = 64,
+    num_workers: Optional[int] = None, # שינוי ל-Optional
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    
+    if num_workers is None:
+        num_workers = 2 if torch.cuda.is_available() else 0
 
 # ============================================================================
 # Data Loading
